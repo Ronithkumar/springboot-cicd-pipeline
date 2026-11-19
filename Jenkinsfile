@@ -1,10 +1,12 @@
+
 pipeline {
     agent any
 
     stages {
-        stage('Checkout') {
+        stage('Build and Test') {
             steps {
-                echo 'Starting CI pipeline'
+                sh 'chmod +x mvnw'
+                sh './mvnw clean verify'
             }
         }
     }
