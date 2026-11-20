@@ -30,7 +30,7 @@ pipeline {
                     sh '''
                         set -eu
 
-                        if ! printf '%s' "$DEPLOY_HOST" | grep -Eq '^[0-9]{1,3}(\.[0-9]{1,3}){3}$'; then
+                        if ! printf '%s' "$DEPLOY_HOST" | grep -Eq '^[0-9]{1,3}([.][0-9]{1,3}){3}$'; then
                             echo "Invalid deployment host: expected an IPv4 address"
                             exit 1
                         fi
