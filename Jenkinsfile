@@ -6,7 +6,7 @@ pipeline {
         string(
             name: 'DEPLOY_HOST',
             defaultValue: '10.20.1.19',
-            description: 'Private IP or hostname of the application server'
+            description: 'Private IPv4 address of the application server'
         )
     }
 
@@ -19,18 +19,21 @@ pipeline {
 
         stage('Archive Artifact') {
             steps {
-                archiveArtifacts artifacts: 'target/employee-management-api.jar',
-                                 fingerprint: true
+                archiveArtifacts(
+                    artifacts: 'target/employee-management-api.jar',
+                    fingerprint: true
+                )
             }
         }
 
         stage('SSH Connectivity Test') {
             steps {
-               sshagent(credentials: ['employee-api-ssh-key']) {
+                sshagent(credentials: ['employee-api-ssh-key']) {
                     sh '''
                         set -eu
 
-                        if ! printf '%s' "$DEPLOY_HOST" | grep -Eq '^[0-9]{1,3}([.][0-9]{1,3}){3}$'; then
+                        if ! printf '%s' "$DEPLOY_HOST" |
+                            grep -Eq '^[0-9]{1,3}([.][0-9]{1,3}){3}$'; then
                             echo "Invalid deployment host: expected an IPv4 address"
                             exit 1
                         fi
@@ -49,27 +52,36 @@ pipeline {
                     sh '''
                         set -eu
 
+                        echo "Transferring application artifact..."
+
                         scp -o StrictHostKeyChecking=accept-new \
                             target/employee-management-api.jar \
                             "ubuntu@$DEPLOY_HOST:/opt/employee-management-api/employee-management-api.jar"
 
-                        
-                        ssh -o StrictHostKeyChecking=accept-new \
-                            "ubuntu@$DEPLOY_HOST" \
-                            "sudo systemctl restart employee-management-api &&
-                            for i in \$(seq 1 12); do
-                                if curl -fsS http://localhost:8081/actuator/health; then
-                                    exit 0
-                                fi
-                                sleep 5
-                            done
-                            echo 'Application health check failed'
-                            exit 1"
+                        echo "Restarting application and checking health..."
 
+                        ssh -o StrictHostKeyChecking=accept-new \
+                            "ubuntu@$DEPLOY_HOST" 'bash -s' <<'REMOTE_SCRIPT'
+set -eu
+
+sudo systemctl restart employee-management-api
+
+for i in $(seq 1 12); do
+    if curl -fsS http://localhost:8081/actuator/health; then
+        echo "Application is healthy"
+        exit 0
+    fi
+
+    echo "Waiting for application startup..."
+    sleep 5
+done
+
+echo "Application health check failed"
+exit 1
+REMOTE_SCRIPT
                     '''
                 }
             }
         }
-
     }
 }
