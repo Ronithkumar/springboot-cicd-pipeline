@@ -42,5 +42,34 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy Application') {
+            steps {
+                sshagent(credentials: ['employee-api-ssh-key']) {
+                    sh '''
+                        set -eu
+
+                        scp -o StrictHostKeyChecking=accept-new \
+                            target/employee-management-api.jar \
+                            "ubuntu@$DEPLOY_HOST:/opt/employee-management-api/employee-management-api.jar"
+
+                        
+                        ssh -o StrictHostKeyChecking=accept-new \
+                            "ubuntu@$DEPLOY_HOST" \
+                            "sudo systemctl restart employee-management-api &&
+                            for i in \$(seq 1 12); do
+                                if curl -fsS http://localhost:8081/actuator/health; then
+                                    exit 0
+                                fi
+                                sleep 5
+                            done
+                            echo 'Application health check failed'
+                            exit 1"
+
+                    '''
+                }
+            }
+        }
+
     }
 }
