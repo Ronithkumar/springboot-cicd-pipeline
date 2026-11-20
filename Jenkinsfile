@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -12,6 +13,18 @@ pipeline {
             steps {
                 archiveArtifacts artifacts: 'target/employee-management-api.jar',
                                  fingerprint: true
+            }
+        }
+
+        stage('SSH Connectivity Test') {
+            steps {
+                sshagent(credentials: ['employee-api-ssh-key']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=accept-new \
+                            ubuntu@10.20.2.130 \
+                            "hostname && whoami"
+                    '''
+                }
             }
         }
     }
