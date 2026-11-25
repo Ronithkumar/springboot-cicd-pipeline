@@ -6,7 +6,7 @@ The goal is to demonstrate automated builds, testing, artifact generation, and d
 
 > **Project status:** Application development and Maven verification completed. Jenkins CI/CD and AWS deployment will be configured separately.
 
-## Technology Stack
+## Technology Stack 
 
 - **Language:** Java 21
 - **Framework:** Spring Boot 3.5.16
