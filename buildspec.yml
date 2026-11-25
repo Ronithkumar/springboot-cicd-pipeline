@@ -1,0 +1,30 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto21
+    commands:
+      - echo "Using Java version:"
+      - java -version
+
+  pre_build:
+    commands:
+      - echo "Starting Maven build..."
+
+  build:
+    commands:
+      - chmod +x mvnw
+      - chmod +x scripts/*.sh
+      - ./mvnw -B clean verify
+
+  post_build:
+    commands:
+      - echo "Build and tests completed."
+
+artifacts:
+  files:
+    - appspec.yml
+    - target/employee-management-api.jar
+    - scripts/**/*
+  discard-paths: no
