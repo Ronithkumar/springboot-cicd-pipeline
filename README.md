@@ -331,3 +331,7 @@ Jenkins, AWS infrastructure, Docker, and deployment configuration are intentiona
 ## Project Objective
 
 This project demonstrates how a Java application can be built, tested, packaged, and prepared for automated deployment using modern DevOps practices.
+
+## CI/CD Pipeline
+
+This project uses Jenkins to automatically build, test, and deploy the application whenever changes are pushed to the main branch.
